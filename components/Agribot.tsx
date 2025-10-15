@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Chat } from '@google/genai';
 import { createAgribotChat } from '../services/geminiService';
@@ -6,6 +5,9 @@ import { ChatMessage } from '../types';
 import Card from './common/Card';
 import Spinner from './common/Spinner';
 import LeafIcon from './icons/LeafIcon';
+import { useLanguage } from '../context/LanguageContext';
+
+const AGRIBOT_CHAT_HISTORY_KEY_PREFIX = 'agribot_chat_history_';
 
 const Agribot: React.FC = () => {
     const [chat, setChat] = useState<Chat | null>(null);
@@ -13,15 +15,45 @@ const Agribot: React.FC = () => {
     const [userInput, setUserInput] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const { language, t } = useLanguage();
+    const chatHistoryKey = `${AGRIBOT_CHAT_HISTORY_KEY_PREFIX}${language}`;
 
     useEffect(() => {
-        const agribotChat = createAgribotChat();
+        // Re-initialize chat and load history when language changes.
+        const agribotChat = createAgribotChat(language);
         setChat(agribotChat);
-        setMessages([{
-            sender: 'bot',
-            text: "Hello! I'm Agribot. How can I help you with your crops today? Describe the symptoms you're seeing."
-        }]);
-    }, []);
+
+        try {
+            const storedHistory = localStorage.getItem(chatHistoryKey);
+            if (storedHistory) {
+                setMessages(JSON.parse(storedHistory));
+            } else {
+                setMessages([{
+                    sender: 'bot',
+                    text: t('agribotWelcome')
+                }]);
+            }
+        } catch (error) {
+            console.error('Failed to load or parse chat history:', error);
+            setMessages([{
+                sender: 'bot',
+                text: t('agribotWelcome')
+            }]);
+        }
+    // The dependency array ensures this effect runs when the language changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [language, t, chatHistoryKey]);
+
+    useEffect(() => {
+        // Save history whenever messages change, but only if there's an actual conversation.
+        if (messages.length > 1) {
+            try {
+                localStorage.setItem(chatHistoryKey, JSON.stringify(messages));
+            } catch (error) {
+                console.error('Failed to save chat history:', error);
+            }
+        }
+    }, [messages, chatHistoryKey]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -53,7 +85,7 @@ const Agribot: React.FC = () => {
 
         } catch (error) {
             console.error('Agribot error:', error);
-            setMessages(prev => [...prev, { sender: 'bot', text: 'Sorry, I encountered an error. Please try again.' }]);
+            setMessages(prev => [...prev, { sender: 'bot', text: t('agribotError') }]);
         } finally {
             setIsLoading(false);
         }
@@ -63,8 +95,8 @@ const Agribot: React.FC = () => {
         <Card>
             <div className="flex flex-col h-[75vh]">
                 <div className="p-4 border-b">
-                    <h2 className="text-2xl font-bold text-brand-green-800">Agribot Assistant</h2>
-                    <p className="text-gray-600">Describe crop symptoms to get AI-powered advice.</p>
+                    <h2 className="text-2xl font-bold text-brand-green-800">{t('agribotAssistant')}</h2>
+                    <p className="text-gray-600">{t('agribotDescription')}</p>
                 </div>
                 <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
                     <div className="space-y-4">
@@ -76,7 +108,7 @@ const Agribot: React.FC = () => {
                                 </div>
                             </div>
                         ))}
-                         {isLoading && messages[messages.length - 1].sender === 'user' && (
+                         {isLoading && messages.length > 0 && messages[messages.length - 1].sender === 'user' && (
                              <div className="flex items-end gap-2 justify-start">
                                  <div className="w-8 h-8 rounded-full bg-brand-green-500 flex items-center justify-center text-white flex-shrink-0"><LeafIcon className="w-5 h-5"/></div>
                                  <div className="max-w-md p-3 rounded-2xl bg-white text-gray-800 shadow-sm rounded-bl-none">
@@ -93,7 +125,7 @@ const Agribot: React.FC = () => {
                             type="text"
                             value={userInput}
                             onChange={(e) => setUserInput(e.target.value)}
-                            placeholder="e.g., 'My tomato leaves have yellow spots...'"
+                            placeholder={t('agribotPlaceholder')}
                             className="flex-1 p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-brand-green-500"
                             disabled={isLoading}
                         />
@@ -103,7 +135,7 @@ const Agribot: React.FC = () => {
                             className="p-3 bg-brand-green-600 text-white rounded-full hover:bg-brand-green-700 disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-green-500 focus:ring-offset-2"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                             </svg>
                         </button>
                     </form>

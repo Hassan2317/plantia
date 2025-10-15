@@ -1,9 +1,11 @@
-
 import React, { useState, useCallback } from 'react';
 import { diagnoseCropDisease } from '../services/geminiService';
 import { DiseaseInfo, RiskLevel } from '../types';
 import Card from './common/Card';
 import Spinner from './common/Spinner';
+import { useLanguage } from '../context/LanguageContext';
+
+const KNOWLEDGE_BASE_KEY = 'cropia_knowledge_base';
 
 const RiskBadge: React.FC<{ level: RiskLevel }> = ({ level }) => {
     const riskStyles = {
@@ -21,6 +23,7 @@ const DiseaseDetection: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [analysisResult, setAnalysisResult] = useState<DiseaseInfo | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const { language, t } = useLanguage();
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files[0]) {
@@ -38,10 +41,21 @@ const DiseaseDetection: React.FC = () => {
         setError(null);
         setAnalysisResult(null);
         try {
-            const result = await diagnoseCropDisease(selectedFile);
+            const result = await diagnoseCropDisease(selectedFile, language);
             setAnalysisResult(result);
+
+            // Save result to localStorage for offline access
+            try {
+                const storedData = localStorage.getItem(KNOWLEDGE_BASE_KEY);
+                const knowledgeBase = storedData ? JSON.parse(storedData) : {};
+                knowledgeBase[result.diseaseName] = result; // Use disease name as key to avoid duplicates
+                localStorage.setItem(KNOWLEDGE_BASE_KEY, JSON.stringify(knowledgeBase));
+            } catch (storageError) {
+                console.error("Failed to save to knowledge base:", storageError);
+            }
+
         } catch (err) {
-            setError('Failed to analyze the image. Please try again.');
+            setError(t('failedToAnalyze'));
             console.error(err);
         } finally {
             setIsLoading(false);
@@ -69,8 +83,8 @@ const DiseaseDetection: React.FC = () => {
         <div className="space-y-6">
             <Card>
                 <div className="p-6">
-                    <h2 className="text-2xl font-bold text-brand-green-800 mb-2">Crop Disease Detection</h2>
-                    <p className="text-gray-600 mb-4">Upload an image of an affected crop leaf to get an instant AI-powered diagnosis and treatment advice.</p>
+                    <h2 className="text-2xl font-bold text-brand-green-800 mb-2">{t('cropDiseaseDetection')}</h2>
+                    <p className="text-gray-600 mb-4">{t('diseaseDetectionDescription')}</p>
                     
                     <label 
                         className="flex justify-center w-full h-48 px-4 transition bg-white border-2 border-gray-300 border-dashed rounded-md appearance-none cursor-pointer hover:border-brand-green-400 focus:outline-none"
@@ -82,8 +96,8 @@ const DiseaseDetection: React.FC = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                             </svg>
                             <span className="font-medium text-gray-600">
-                                Drop files to Attach, or
-                                <span className="text-blue-600 underline ml-1">browse</span>
+                                {t('dropFiles')}&nbsp;
+                                <span className="text-blue-600 underline">{t('browse')}</span>
                             </span>
                         </span>
                         <input type="file" name="file_upload" className="hidden" accept="image/*" onChange={handleFileChange} />
@@ -97,7 +111,7 @@ const DiseaseDetection: React.FC = () => {
                                 disabled={isLoading}
                                 className="mt-4 px-6 py-2 bg-brand-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-brand-green-700 focus:outline-none focus:ring-2 focus:ring-brand-green-500 focus:ring-opacity-75 disabled:bg-gray-400 disabled:cursor-not-allowed"
                             >
-                                {isLoading ? <Spinner /> : 'Diagnose'}
+                                {isLoading ? <Spinner /> : t('diagnose')}
                             </button>
                         </div>
                     )}
@@ -110,25 +124,25 @@ const DiseaseDetection: React.FC = () => {
                  <Card>
                     <div className="p-6">
                         <div className="flex justify-between items-start">
-                             <h3 className="text-xl font-bold text-brand-green-800 mb-2">Diagnosis Result: {analysisResult.diseaseName}</h3>
+                             <h3 className="text-xl font-bold text-brand-green-800 mb-2">{t('diagnosisResult')} {analysisResult.diseaseName}</h3>
                              <RiskBadge level={analysisResult.riskLevel} />
                         </div>
                        
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                             <div>
-                                <h4 className="font-semibold text-lg text-gray-700 mb-2">Symptoms</h4>
+                                <h4 className="font-semibold text-lg text-gray-700 mb-2">{t('symptoms')}</h4>
                                 <ul className="list-disc list-inside text-gray-600 space-y-1">
                                     {analysisResult.symptoms.map((symptom, index) => <li key={index}>{symptom}</li>)}
                                 </ul>
                             </div>
                             <div>
-                                <h4 className="font-semibold text-lg text-gray-700 mb-2">Prevention & Control</h4>
+                                <h4 className="font-semibold text-lg text-gray-700 mb-2">{t('preventionControl')}</h4>
                                 <ul className="list-disc list-inside text-gray-600 space-y-1">
                                     {analysisResult.prevention.map((item, index) => <li key={index}>{item}</li>)}
                                 </ul>
                             </div>
                              <div className="md:col-span-2">
-                                <h4 className="font-semibold text-lg text-gray-700 mb-2">Recommended Chemicals</h4>
+                                <h4 className="font-semibold text-lg text-gray-700 mb-2">{t('recommendedChemicals')}</h4>
                                 <ul className="list-disc list-inside text-gray-600 space-y-1">
                                     {analysisResult.recommendedChemicals.map((chem, index) => <li key={index}>{chem}</li>)}
                                 </ul>

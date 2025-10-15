@@ -1,6 +1,5 @@
-
 import { GoogleGenAI, Type, Chat, GenerateContentResponse } from "@google/genai";
-import { DiseaseInfo, WeatherData } from '../types';
+import { DiseaseInfo, WeatherData, Language } from '../types';
 
 if (!process.env.API_KEY) {
     throw new Error("API_KEY environment variable not set");
@@ -19,10 +18,11 @@ const fileToGenerativePart = async (file: File) => {
   };
 };
 
-export const diagnoseCropDisease = async (image: File): Promise<DiseaseInfo> => {
+export const diagnoseCropDisease = async (image: File, language: Language): Promise<DiseaseInfo> => {
     const imagePart = await fileToGenerativePart(image);
+    const langName = language === Language.NY ? 'Chichewa' : 'English';
     const textPart = {
-        text: `You are an expert agricultural pathologist. Analyze the provided image of a plant leaf. Identify the disease, its symptoms, risk level (Low, Moderate, High), recommended chemical treatments with dosage, and prevention/control measures. Ensure the response adheres to the provided JSON schema.`,
+        text: `You are an expert agricultural pathologist. Analyze the provided image of a plant leaf. Identify the disease, its symptoms, risk level (Low, Moderate, High), recommended chemical treatments with dosage, and prevention/control measures. Ensure the response adheres to the provided JSON schema. IMPORTANT: Provide the entire response in ${langName}.`,
     };
 
     const response: GenerateContentResponse = await ai.models.generateContent({
@@ -48,17 +48,23 @@ export const diagnoseCropDisease = async (image: File): Promise<DiseaseInfo> => 
     return JSON.parse(jsonString) as DiseaseInfo;
 };
 
-export const createAgribotChat = (): Chat => {
+export const createAgribotChat = (language: Language): Chat => {
+    const langName = language === Language.NY ? 'Chichewa' : 'English';
+    const offTopicResponse = language === Language.NY
+        ? "Ndili pano kuti ndithandizire pa matenda a mbeu zaulimi."
+        : "I'm here to assist agricultural crop diseases";
+
     return ai.chats.create({
         model: 'gemini-2.5-flash',
         config: {
-            systemInstruction: "You are Agribot, an expert agricultural assistant specializing in crop diseases. Communicate in a clear, simple, and supportive manner. You can diagnose diseases based on text descriptions of symptoms. Offer advice on prevention and treatment. If asked about things outside of agriculture, politely state that you can only help with farming-related questions."
+            systemInstruction: `You are Agribot, an expert agricultural assistant specializing ONLY in crop diseases. Communicate in a clear, simple, and supportive manner. You can diagnose diseases based on text descriptions of symptoms. Offer advice on prevention and treatment. If the user asks about anything NOT related to crop diseases (such as politics, sports, general greetings like 'how are you', or any other off-topic subject), you MUST reply with the exact phrase: "${offTopicResponse}". Do not deviate from this phrase. Do not provide any other information. IMPORTANT: Your entire conversation must be exclusively in ${langName}.`
         },
     });
 };
 
-export const getWeatherInfo = async (location: string): Promise<WeatherData> => {
-    const prompt = `Generate a realistic weather report for ${location}. The report should include the current temperature in Celsius, humidity percentage, a short weather description, and a 5-day forecast. Each day in the forecast should include the day of the week, high temperature, low temperature, and a short weather description. Provide the response in JSON format.`;
+export const getWeatherInfo = async (location: string, language: Language): Promise<WeatherData> => {
+    const langName = language === Language.NY ? 'Chichewa' : 'English';
+    const prompt = `Generate a realistic weather report for ${location}. The report should include the current temperature in Celsius, humidity percentage, a short weather description, and a 5-day forecast. Each day in the forecast should include the day of the week, high temperature, low temperature, and a short weather description. Provide the response in JSON format. IMPORTANT: All text values in the JSON (like descriptions and day names) must be in ${langName}.`;
     
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',

@@ -1,13 +1,15 @@
-
 import React, { useState } from 'react';
 import Header from './components/Header';
 import DiseaseDetection from './components/DiseaseDetection';
 import Agribot from './components/Agribot';
 import Weather from './components/Weather';
+import KnowledgeBase from './components/KnowledgeBase';
 import { Tab } from './types';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>(Tab.Detect);
+  const { t } = useLanguage();
 
   const renderContent = () => {
     switch (activeTab) {
@@ -17,6 +19,8 @@ const App: React.FC = () => {
         return <Agribot />;
       case Tab.Weather:
         return <Weather />;
+      case Tab.KnowledgeBase:
+        return <KnowledgeBase />;
       default:
         return <DiseaseDetection />;
     }
@@ -29,9 +33,17 @@ const App: React.FC = () => {
         {renderContent()}
       </main>
        <footer className="text-center py-4 text-gray-500 text-sm">
-          <p>CROPIA &copy; {new Date().getFullYear()}. AI for modern agriculture.</p>
+          <p>{t('footerText', { year: new Date().getFullYear().toString() })}</p>
        </footer>
     </div>
+  );
+}
+
+const App: React.FC = () => {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 };
 
