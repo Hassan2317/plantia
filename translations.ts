@@ -1,3 +1,4 @@
+
 import { Language } from './types';
 
 export const translations: Record<Language, Record<string, string>> = {
@@ -41,6 +42,21 @@ export const translations: Record<Language, Record<string, string>> = {
     clearCache: 'Clear All Saved Data',
     confirmClear: 'Are you sure you want to delete all saved disease information? This action cannot be undone.',
     exportData: 'Export Data',
+    // Onboarding
+    onboardingWelcomeTitle: 'Welcome to CROPIA!',
+    onboardingWelcomeText: 'Your AI-powered partner for modern agriculture. Let\'s take a quick tour of the features.',
+    onboardingDetectTitle: 'Detect Disease',
+    onboardingDetectText: 'Simply upload a photo of a plant leaf, and our AI will instantly diagnose any diseases and recommend treatments.',
+    onboardingAgribotTitle: 'Agribot Assistant',
+    onboardingAgribotText: 'Chat with our AI assistant, Agribot. Describe symptoms in your own words to get expert advice on crop health.',
+    onboardingWeatherTitle: 'Weather Forecasts',
+    onboardingWeatherText: 'Get accurate, localized weather forecasts to help you plan your farming activities and protect your crops.',
+    onboardingKnowledgeTitle: 'Knowledge Base',
+    onboardingKnowledgeText: 'Every diagnosis you make is automatically saved. Access this information anytime, even without an internet connection.',
+    next: 'Next',
+    previous: 'Previous',
+    getStarted: 'Get Started!',
+    skip: 'Skip',
     // Footer
     footerText: 'CROPIA © {year}. AI for modern agriculture.',
   },
@@ -84,6 +100,21 @@ export const translations: Record<Language, Record<string, string>> = {
     clearCache: 'Chotsani Zonse Zosungidwa',
     confirmClear: 'Mukutsimikiza kuti mukufuna kuchotsa zambiri zonse za matenda? Izi sizingasinthidwe.',
     exportData: 'Tumizani Zambiri',
+    // Onboarding
+    onboardingWelcomeTitle: 'Takulandirani ku CROPIA!',
+    onboardingWelcomeText: 'Mthandizi wanu wanzeru zopangira za ulimi wamakono. Tiyeni tikuonetseni mwachidule ntchito zake.',
+    onboardingDetectTitle: 'Zindikirani Matenda',
+    onboardingDetectText: 'Ingoikani chithunzi cha tsamba la mbeu, ndipo AI yathu izindikira matenda aliwonse ndikupereka malangizo a mankhwala.',
+    onboardingAgribotTitle: 'Mthandizi wa Agribot',
+    onboardingAgribotText: 'Chezani ndi mthandizi wathu wa AI, Agribot. Fotokozani zizindikiro m\'mawu anu kuti mupeze malangizo odziwa bwino za thanzi la mbeu.',
+    onboardingWeatherTitle: 'Zanyengo',
+    onboardingWeatherText: 'Pezani zanyengo zolondola zakomwe muli kuti zikuthandizeni kukonzekera ntchito zanu za ulimi ndi kuteteza mbeu zanu.',
+    onboardingKnowledgeTitle: 'Chidziwitso Chosungidwa',
+    onboardingKnowledgeText: 'Matenda onse amene mwawazindikira amasungidwa. Mutha kupeza chidziwitsochi nthawi iliyonse, ngakhale mulibe intaneti.',
+    next: 'Zotsatira',
+    previous: 'Mmbuyo',
+    getStarted: 'Yambani!',
+    skip: 'Lumpha',
     // Footer
     footerText: 'CROPIA © {year}. AI ya ulimi wamakono.',
   },

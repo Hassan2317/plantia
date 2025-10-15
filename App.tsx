@@ -1,15 +1,41 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import DiseaseDetection from './components/DiseaseDetection';
 import Agribot from './components/Agribot';
 import Weather from './components/Weather';
 import KnowledgeBase from './components/KnowledgeBase';
+import Onboarding from './components/Onboarding';
 import { Tab } from './types';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 
+const ONBOARDING_KEY = 'cropia_onboarding_complete';
+
 const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>(Tab.Detect);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const { t } = useLanguage();
+
+  useEffect(() => {
+    try {
+        const onboardingComplete = localStorage.getItem(ONBOARDING_KEY);
+        if (!onboardingComplete) {
+            setShowOnboarding(true);
+        }
+    } catch (e) {
+        console.error("Could not access localStorage:", e);
+    }
+  }, []);
+
+  const handleOnboardingComplete = () => {
+      try {
+          localStorage.setItem(ONBOARDING_KEY, 'true');
+      } catch (e) {
+          console.error("Could not write to localStorage:", e);
+      }
+      setShowOnboarding(false);
+  };
+
 
   const renderContent = () => {
     switch (activeTab) {
@@ -28,6 +54,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen font-sans text-gray-800">
+      {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
       <Header activeTab={activeTab} setActiveTab={setActiveTab} />
       <main className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
         {renderContent()}
