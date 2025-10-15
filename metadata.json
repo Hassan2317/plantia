@@ -1,0 +1,5 @@
+{
+  "name": "CROPIA – Smart Crop Disease Detection & Advisory App",
+  "description": "An AI-powered web application to assist farmers in identifying crop diseases using image recognition and a conversational AI assistant. It also provides weather-based insights to help manage crop health.",
+  "requestFramePermissions": []
+}
