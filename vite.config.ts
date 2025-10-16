@@ -10,7 +10,10 @@ export default defineConfig(({ mode }) => {
         host: '0.0.0.0',
       },
       preview: {
-        allowedHosts: ['plantia-1.onrender.com'] // <-- added option 2
+        // Allow all hosts — needed for Render deployment
+        allowedHosts: 'all',
+        port: 3000,
+        host: '0.0.0.0'
       },
       plugins: [react()],
       define: {
